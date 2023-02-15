@@ -27,9 +27,17 @@ const joi = require('joi')
 app.use((err, req, res, next) => {
     // 数据验证失败
     if (err instanceof joi.ValidationError) return res.cc(err)
+    // 捕获身份认证失败的错误
+    if (err.name === 'UnauthorizedError') return res.cc('身份认证失败！')
     // 未知错误
     res.cc(err)
 })
+// 配置解析token的中间件
+const config = require('./config')
+// 解析token的中间接
+const expressJWT = require('express-jwt')
+// 使用 .unless({path: [/^\/api\//]})指定哪些接口不需要进行token身份认证
+app.use(expressJWT({ secret: config.jwtSecretKey }).unless({ path: [/^\/api\//] }))
 
 
 // 导入并使用用户路由模块

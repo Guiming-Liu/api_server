@@ -8,6 +8,11 @@ const db = require('../db/index')
 // 导入bcryjs模块
 const bcrypt = require('bcryptjs')
 
+// 导入jsonwebtoken模块
+const jwt = require('jsonwebtoken')
+// 导入配置文件
+const config = require('../config')
+
 // 注册用户的处理函数
 exports.regUser = (req, res) => {
     // 1.检测表单数据是否合法 
@@ -64,6 +69,40 @@ exports.regUser = (req, res) => {
 }
 
 // 登录的处理函数
+// 1.检测表单数据是否合法
 exports.login = (req, res) => {
-    res.send('login ok')
+    // 2.根据用户名查询用户的数据
+    // 2.1接收表单数据
+    const userInfo = req.body
+    // 2.2定义sql语句
+    const sql = `select * from ev_users where username=?`
+    // 2.3执行sql语句，查询用户的数据
+    db.query(sql, userInfo.username, (err, results) => {
+        // 执行sql语句失败
+        if(err) return res.cc(err)
+        // 执行sql语句成功，但查询到的数据条数不为1
+        if(results.length !== 1) return res.cc('登录失败')
+
+        // 3.判断用户输入的密码是否正确
+        // 3.1拿着用户输入的密码，和数据库中存储的密码进行对比
+        const compareResult = bcrypt.compareSync(userInfo.password, results[0].password)
+        // 3.2如果对比的结果是false,则证明用户输入的密码是错的
+        if(!compareResult) return res.cc('登录失败')
+
+        // 4.登录成功，生成JWT的Token字符串
+        // 4.1通过ES6的高级语法，快速剔除密码和头像的值
+        // 剔除完毕后，user中只保留了用户的id, username, nickname, emil这四个属性的值
+        const user = {...results[0], password: '', user_pic:''}
+        // 4.2生成Token字符串
+        const tokenStr = jwt.sign(user, config.jwtSecretKey, {
+            expiresIn: '10h', // 有效期为10小时
+        })
+        // 4.3将生成的Token字符串响应给客户端
+        res.send({
+            status:0,
+            message:'登录成功',
+            // 为了方便客户端使用Token，在服务器端直接拼接上Bearer的前缀
+            token:'Bearer '+tokenStr
+        })
+    })
 }
