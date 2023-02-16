@@ -81,13 +81,14 @@ exports.login = (req, res) => {
         // 执行sql语句失败
         if(err) return res.cc(err)
         // 执行sql语句成功，但查询到的数据条数不为1
+        console.log(results.length);
         if(results.length !== 1) return res.cc('登录失败')
 
         // 3.判断用户输入的密码是否正确
         // 3.1拿着用户输入的密码，和数据库中存储的密码进行对比
         const compareResult = bcrypt.compareSync(userInfo.password, results[0].password)
         // 3.2如果对比的结果是false,则证明用户输入的密码是错的
-        if(!compareResult) return res.cc('登录失败')
+        if(!compareResult) return res.cc('密码错误')
 
         // 4.登录成功，生成JWT的Token字符串
         // 4.1通过ES6的高级语法，快速剔除密码和头像的值

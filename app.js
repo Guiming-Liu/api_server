@@ -38,6 +38,8 @@ const config = require('./config')
 const expressJWT = require('express-jwt')
 // 使用 .unless({path: [/^\/api\//]})指定哪些接口不需要进行token身份认证
 app.use(expressJWT({ secret: config.jwtSecretKey }).unless({ path: [/^\/api\//] }))
+// 托管静态资源文件
+app.use('/uploads', express.static('./uploads'))
 
 
 // 导入并使用用户注册登录路由模块
@@ -52,6 +54,10 @@ app.use('/my', userInfoRouter)
 // 导入并使用文章分类路由模块
 const articleCateRouter = require('./router/articleCate')
 app.use('/my/article', articleCateRouter)
+
+// 导入并使用发布文章的路由模块
+const articleRouter = require('./router/article')
+app.use('/my/article', articleRouter)
 
 // 调用app.listen方法，指定端口号并启动web服务器
 app.listen(3007, function () {
