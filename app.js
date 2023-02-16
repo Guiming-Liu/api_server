@@ -40,9 +40,14 @@ const expressJWT = require('express-jwt')
 app.use(expressJWT({ secret: config.jwtSecretKey }).unless({ path: [/^\/api\//] }))
 
 
-// 导入并使用用户路由模块
+// 导入并使用用户注册登录路由模块
 const userRouter = require('./router/user')
 app.use('/api', userRouter)
+
+// 导入并使用用户信息路由模块
+const userInfoRouter = require('./router/userInfo')
+// 注意：以/my开头的接口，都是有权限的接口，需要进行Token身份认证
+app.use('/my', userInfoRouter)
 
 // 调用app.listen方法，指定端口号并启动web服务器
 app.listen(3007, function () {
